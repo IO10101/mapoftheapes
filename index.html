@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Maps Embed</title>
+<style>
+  /* Styling für die Karte */
+  #map {
+    height: 800px; /* Anpassen der Höhe der Karte */
+    width: 100%; /* Volle Breite */
+  }
+
+  #searchInputContainer {
+    position: absolute;
+    top: 15px;
+    left: 50%; /*%;*/
+    transform: translateX(-50%);
+    z-index: 1;
+    background-color: transparent;
+    border-radius: 1px;
+    box-shadow:  0px 0px rgba(0, 0, 0, 0.1);
+    border: 0px solid #000000; /* Rahmenstil anpassen */
+  }
+
+  #autocompleteDropdown {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    width: 265px; /* Hier wird die Breite des Suchfeldcontainers festgelegt */
+  }
+
+  .autocomplete-item {
+    cursor: pointer;
+    padding: 5px;
+  }
+
+  .autocomplete-item:hover {
+    background-color: #f0f0f0;
+  }
+</style>
+</head>
+<body>
+<!-- Google Maps einbetten -->
+<div id="map"></div>
+
+<!-- Suchfeld für die Standortsuche -->
+<div id="searchInputContainer">
+  <input id="searchInput" type="text" placeholder="Suche">
+  <div id="autocompleteDropdown" style="display: none;"></div>
+</div>
+
+<script>
+  // Funktion zum Initialisieren der Karte
+  function initMap() {
+    // Die Koordinaten der Standorte
+    var locations = [
+                {lat: 48.158004205136386, lng: 16.382102170490402, title: 'FH Campus - House of Health Science', link: 'http://ode.wiki.gocomp.net:4567/category/87/house-of-health-sciences', category: 'Hochbau'},
+                {lat: 48.227228339874515, lng: 16.360930870255512, title: 'AQ1 Althanquartier', link: 'http://ode.wiki.gocomp.net:4567/category/84/althanquartier', category: 'Hochbau'},
+                {lat: 48.32034103626244, lng: 16.06404459173535, title: 'Haus der Digitalisierung', link: 'http://ode.wiki.gocomp.net:4567/category/148/haus-der-digitalisierung', category: 'Hochbau'},
+                {lat: 46.64489593026541, lng: 14.348448667888134, title: 'Justizanstalt Klagenfurt', link: 'http://ode.wiki.gocomp.net:4567/category/60/big-justizanstalt-klagenfurt', category: 'Hochbau'},
+                {lat: 47.818650, lng: 13.019440, title: 'Südtiroler Quartier', link: 'http://ode.wiki.gocomp.net:4567/category/188/s%C3%BCdtiroler-quartier', category: 'Hochbau'},
+                {lat: 48.18313266920475, lng: 16.414973890389422, title: 'Wiener Wohnen Kundenservice', category: 'Hochbau'},
+                {lat: 48.16785839462165, lng: 16.37466980409743, title: 'Ettenreichgasse', link: 'http://ode.wiki.gocomp.net:4567/category/69/big-ettenreichgasse', category: 'Hochbau'},
+                {lat: 48.22665695991117, lng: 16.33422953894582, title: 'Klostergassse', link: 'http://ode.wiki.gocomp.net:4567/category/57/big-klostergasse', category: 'Hochbau'},
+                                
+                {lat: 47.89141223986269, lng: 13.119413015051933, title: 'Seekirchen', link: 'http://ode.wiki.gocomp.net:4567/category/93/salzburg-ag-seekirchen', category: 'Hochbau'},
+                {lat: 48.182596297802114, lng: 16.369185818664576, title: 'Neues Landgut', category: 'Hochbau'},
+                {lat: 48.18185533750605, lng: 16.372588877240993, title: 'Landgutgasse', link: 'http://ode.wiki.gocomp.net:4567/category/54/lgg-bildungscampus-landgutgasse', category: 'Hochbau'},
+                {lat: 47.38283958517351, lng: 13.463320801927154, title: 'BORG - Radstadt', link: 'http://ode.wiki.gocomp.net:4567/category/66/big-radstadt', category: 'Hochbau'},
+                {lat: 48.256501534652976, lng: 16.404452214367385, title: 'BAFEP', link: 'http://ode.wiki.gocomp.net:4567/category/13/ma34-bafep', category: 'Hochbau'},
+                {lat: 47.86986351391234, lng: 12.106662085969182, title: 'Campus Rosenheim - Studentenwohnheim', link: 'https://www.ode.or.at/projekte/show/campus-rosenheim-studentenwohnheim', category: 'Hochbau'},
+                {lat: 48.22995867214057, lng: 16.38348507314339, title: 'BCNWB', link: 'http://ode.wiki.gocomp.net:4567/category/138/ma34-bcnwb', category: 'Hochbau'},
+                {lat: 48.23233343981297, lng: 16.48388954232797, title: 'BCHFN', link: 'http://ode.wiki.gocomp.net:4567/category/205/ma34-bchfn', category: 'Hochbau'},
+                {lat: 48.19709003577866, lng: 16.30295028556958, title: 'Dreyhausenstraße', link: 'http://ode.wiki.gocomp.net:4567/category/99/ma34-u-ma19-dreyhausenstraße', category: 'Hochbau'},
+                {lat: 48.24336802333646, lng: 16.45854134188818, title: 'Leopold-Kohr-Strasße', link: 'http://ode.wiki.gocomp.net:4567/category/13/ma34-bafep', category: 'Hochbau'},
+                {lat: 48.17502285776498, lng: 16.394133159590396, title: 'Kempelenpark', category: 'Hochbau'},
+                {lat: 48.2224381608888, lng: 16.50366035825221, title: 'ZBG', link: 'http://ode.wiki.gocomp.net:4567/category/14/ma34-zbg', category: 'Hochbau'},
+                {lat: 48.14775788242831, lng: 16.285856061804957, title: 'Höpflerbad', category: 'Hochbau'},
+                {lat: 48.210546, lng: 16.424282, title: 'Fernbus Terminal', link: 'http://ode.wiki.gocomp.net:4567/category/275/fernbus-terminal-fbt', category: 'Hochbau'},
+                {lat: 48.24063715447992, lng: 16.439634513491935, title: 'Bernoullistraße', link: 'http://ode.wiki.gocomp.net:4567/category/200/bernoullistraße-8a-wwbern', category: 'Hochbau'},
+                {lat: 48.216490151847005, lng: 16.379737704124235, title: 'Karmelitergasse', link: 'http://ode.wiki.gocomp.net:4567/topic/768/projektsteckbrief?_=1752565640711', category: 'Hochbau'},
+
+                {lat: 48.264828715880064, lng: 16.450773902668082, title: 'Wienerlinien | Baldassgasse', link: 'http://ode.wiki.gocomp.net:4567/category/193/wl-baldassgasse', category: 'Hochbau'},
+                {lat: 48.21825056624474, lng: 16.331736031382185, title: 'Wienerlinien | U5 2. Baustufe', link: 'http://ode.wiki.gocomp.net:4567/category/191/wiener-linien', category: 'Tiefbau'},
+
+                {lat: 47.57708358121154, lng: 14.318300361735412, title: 'A9 Hauptmautstelle Bosruck', link: 'http://ode.wiki.gocomp.net:4567/topic/625/bosruck-steckbrief-projekt?_=1751991803788', category: 'Hochbau'},
+                {lat: 47.323376665073035, lng: 15.03010747896569, title: 'A9 Hauptmautstelle Gleinalm', link: 'http://ode.wiki.gocomp.net:4567/topic/44/gleinalm-steckbrief-projekt?_=1751991803784', category: 'Hochbau'},
+                {lat: 47.14123556594185, lng: 10.314575380025781, title: 'S16 Hauptmautstelle', link: 'http://ode.wiki.gocomp.net:4567/category/52/asfinag-s16-mautstelle', category: 'Hochbau'},
+                {lat: 46.5295171154515, lng: 14.030359786312179, title: 'A11 Hauptmautstelle', link: 'http://ode.wiki.gocomp.net:4567/category/194/asfinag-a11-mautstelle', category: 'Hochbau'},
+				        {lat: 47.182293515671624, lng: 11.396546620351224, title: 'A13 Nebenmautstelle | Stubai Abfahrt', link: 'http://ode.wiki.gocomp.net:4567/topic/904/steckbrief?_=1751991269646', category: 'Hochbau'},
+				        {lat: 47.184604775402725, lng: 11.40029015481519, title: 'A13 Nebenmautstelle | Stubai Zufahrt', link: 'http://ode.wiki.gocomp.net:4567/topic/904/steckbrief?_=1751991269646', category: 'Hochbau'},
+				        {lat: 47.20631282472624, lng: 11.404211504919605, title: 'A13 Nebenmautstelle | Patsch-Igls', link: 'http://ode.wiki.gocomp.net:4567/topic/904/steckbrief?_=1751991269646', category: 'Hochbau'},
+				        {lat: 47.015811199646194, lng: 11.507122779148334, title: 'A13 Nebenmautstelle | Brennersee', link: 'http://ode.wiki.gocomp.net:4567/topic/904/steckbrief?_=1751991269646', category: 'Hochbau'},
+				        {lat: 47.11932218464365, lng: 11.449535393271194, title: 'A13 Nebenmautstelle | Matrei', link: 'http://ode.wiki.gocomp.net:4567/topic/904/steckbrief?_=1751991269646', category: 'Hochbau'},
+				
+                {lat: 48.638018434139816, lng: 15.813826851796476, title: 'Franz-Josefs-Bahn', link: 'https://www.ode.or.at/projekte/show/franz-josefs-bahn-paket-2', category: 'Zug'},
+				        {lat: 48.32994243550729, lng: 16.059881927141674, title: 'Tu-Tfd', link: 'http://ode.wiki.gocomp.net:4567/topic/878/steckbrief?_=1751974879902', category: 'Zug'},
+                {lat: 48.03510361697835, lng: 16.491563087030688, title: 'Gramatneusiedl', link: 'http://ode.wiki.gocomp.net:4567/category/81/%C3%B6bb-gramatneusiedl', category: 'Zug'},
+                {lat: 48.196987644753314, lng: 16.262805182702476, title: 'Hütteldorf', link: 'http://ode.wiki.gocomp.net:4567/category/90/%C3%B6bb-h%C3%BCtteldorf', category: 'Zug'},
+                {lat: 46.81427087999282, lng: 15.29685512245716, title: 'Koralmbahn', link: 'https://www.ode.or.at/projekte/show/koralmtunnel', category: 'Zug'},
+                {lat: 48.33609956468379, lng: 16.299190382656924, title: 'Bf Kritzendorf', link: 'http://ode.wiki.gocomp.net:4567/topic/463/projektsteckbrief?_=1751991200695', category: 'Zug'},
+                {lat: 47.079932, lng: 15.569165, title: 'Laßnitztunnel', category: 'Tiefbau'},
+                {lat: 47.87743915871171, lng: 16.362265691960722, title: 'Schleife Ebenfurth', link: 'http://ode.wiki.gocomp.net:4567/topic/128/projektsteckbrief-ebenfurth?_=1751993091132', category: 'Zug'},
+                
+				        {lat: 45.5543613073142, lng: 13.867616481913762, title: '2TDK', link: 'http://ode.wiki.gocomp.net:4567/category/72/2tdk', category: 'Zug'},
+      			    {lat: 47.4931238805162, lng: 12.054742983247394, title: 'Rohbaustellen Angath', link: 'http://ode.wiki.gocomp.net:4567/category/132/angath', category: 'Tiefbau'},
+				        {lat: 48.235727, lng: 16.510276, title: 'EKSP', link: 'http://ode.wiki.gocomp.net:4567/category/269/ma34-eksp-seestadt', category: 'Hochbau'},
+                {lat: 46.168891, lng: 14.692239, title: 'Lukovica', link: 'https://ode.or.at/projekte/show/wohnsiedlung-lukovica-slowenien', category: 'Hochbau'},
+			        
+                ];
+	
+	  
+// Karte initialisieren
+var map = new google.maps.Map(document.getElementById('map'), {
+  zoom: 14, // Standard-Zoom-Level
+  center: {lat: locations[0].lat, lng: locations[0].lng}, // Zentrieren der Karte auf den ersten Standort
+  styles:
+
+
+
+//Start Styles Array -> https://mapstyle.withgoogle.com/ hier Style Wizard nutzen und hier im Array einfügen!
+
+[
+  {
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#f5f5f5"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.icon",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#616161"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#f5f5f5"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.land_parcel",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#bdbdbd"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.locality",
+    "stylers": [
+      {
+        "visibility": "simplified"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.locality",
+    "elementType": "labels.text",
+    "stylers": [
+      {
+        "color": "#666666"
+      }
+    ]
+  },
+  {
+    "featureType": "landscape.natural.landcover",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#9fbf97"
+      },
+      {
+        "visibility": "simplified"
+      },
+      {
+        "weight": 4.5
+      }
+    ]
+  },
+  {
+    "featureType": "landscape.natural.terrain",
+    "stylers": [
+      {
+        "color": "#d1d1d1"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#eeeeee"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#757575"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#e5e5e5"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#b9cfbf"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9e9e9e"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#ffffff"
+      }
+    ]
+  },
+  {
+    "featureType": "road.arterial",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#757575"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#dadada"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#616161"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9e9e9e"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.line",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#e5e5e5"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.station",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#eeeeee"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#c9c9c9"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "geometry.fill",
+    "stylers": [
+      {
+        "color": "#82b3f3"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9e9e9e"
+      }
+    ]
+  }
+]
+
+//Ende Styles Array
+
+});
+
+
+
+
+    // Funktion zum Festlegen des Symbols basierend auf der Kategorie
+    function getMarkerIcon(category) {
+      switch(category) {
+        case 'Tiefbau':
+          return 'https://i.imgur.com/InSnIBX.png'; // Tunnel-Symbol
+          //return 'https://infrastruktur.oebb.at/de/'; // Tunnel-Symbol
+        case 'Hochbau':
+          return 'https://i.imgur.com/XsaA9w9.png'; // Hochhaus-Symbol
+        case 'Zug':
+          return 'https://i.imgur.com/TXdNCij.png'; // Zug-Symbol
+        default:
+          return ''; // Kein Symbol
+      }
+    }
+
+    // Marker für jeden Standort hinzufügen
+    locations.forEach(function(location) {
+      var marker = new google.maps.Marker({
+        position: {lat: location.lat, lng: location.lng},
+        map: map,
+        title: location.title, // Titel des Standorts
+        icon: {
+          url: getMarkerIcon(location.category),
+          scaledSize: new google.maps.Size(30,30) // Größe des Symbols in Pixeln (angepasst auf 40x40)
+        }
+      });
+	// Test Polyline
+	const infoWindow = new google.maps.InfoWindow();
+	const pfade = [
+		{
+			name: "ÖBB Tu-Tfd | Strecke 109",
+			color: "#FF0000",
+			coords: [
+				{ lat: 48.3339494180897, lng: 16.209229103943713},
+				{ lat: 48.326900596186334, lng: 16.189425941481726},
+				{ lat: 48.32661379895024, lng: 16.175060027911893},
+				{ lat: 48.32934567526357, lng: 16.138170099308795},
+				{ lat: 48.323031950348664, lng: 16.07506300346684},
+				{ lat: 48.32994243550729, lng: 16.059881927141674},
+				{ lat: 48.331877328020795, lng: 16.058752491191058},
+				{ lat: 48.365124441636304, lng: 16.0532182081309},
+				{ lat: 48.401824905001845, lng: 15.986057222670524}
+			],
+		},
+		{
+			name: "ÖBB Tu-Tfd | Strecke 110",
+			color: "#FF0000",
+			coords: [
+				{ lat: 48.32994243550729, lng: 16.059881927141674},
+				{ lat: 48.325944530441454, lng: 16.04693141728975},
+				{ lat: 48.2953496075832, lng: 16.016578839584295},
+				{ lat: 48.29516682291617, lng: 15.996031587038674}
+			],
+		},
+		{
+			name: "ÖBB FJB | Direktanbindung Horn",
+			color: "#c20202",
+			coords: [
+				{ lat: 48.665854644069945, lng: 15.673008136466127},
+				{ lat: 48.67195324321975, lng: 15.688146263941093},
+				{ lat: 48.685793739283454, lng: 15.74463920563171}
+			],
+		},
+		{
+			name: "ÖBB FJB | zweigleisiger Ausbau",
+			color: "#c20202",
+			coords: [
+				{ lat: 48.401824905001845, lng: 15.986057222670524},
+				{ lat: 48.52824339405295, lng: 15.921532709235793},
+				{ lat: 48.592394855761704, lng: 15.861565518777617},
+				{ lat: 48.63784517716484, lng: 15.814750783420317},
+				{ lat: 48.685793739283454, lng: 15.74463920563171},
+				{ lat: 48.74232743926069, lng: 15.670577190176129},
+				{ lat: 48.74846150602871, lng: 15.53954630219564}
+
+			],
+		},
+		{
+			name: "ÖBB Bf Kritzendorf",
+			color: "#c20202",
+			coords: [
+				{ lat: 48.3387812754903, lng:16.297026998536456},
+				{ lat: 48.33207290326134, lng: 16.30188784961856},
+				{ lat: 48.32557143629853, lng: 16.30791650767942}
+			],
+		},
+		{
+			name: "ÖBB | Schleife Ebenfurth",
+			color: "#c20202",
+			coords: [
+				{ lat: 47.86895864871387, lng: 16.33476039657317},
+				{ lat: 47.873539425674245, lng: 16.343378442210636},
+				{ lat: 47.878418513810345, lng: 16.361529486959988},
+				{ lat: 47.88399482546227, lng: 16.372154253094603},
+				{ lat: 47.88926195184084, lng: 16.379677350917643},
+				{ lat: 47.90528008888117, lng: 16.396168811681598}
+
+			],
+		},
+		{
+			name: "ÖBB | Schleife Ebenfurth",
+			color: "#c20202",
+			coords: [
+				{ lat: 47.88926195184084, lng: 16.379677350917643},
+				{ lat: 47.88189198645615, lng: 16.386806232802353},
+				{ lat: 47.87517526775029, lng: 16.378979674295984},
+				{ lat: 47.868681368277876, lng: 16.381262179885336}
+
+			],
+		},
+    {
+			name: "Wienerlinien | U5 2. Baustufe",
+			color: "#0e9299",
+			coords: [
+				//{ lat: 48.21492523303312, lng: 16.355531102620734},
+        //{ lat: 48.221986965153995, lng: 16.353472345840736},
+				//{ lat: 48.22076697334749, lng: 16.342891528067906},
+				//{ lat: 48.21825056624474, lng: 16.331736031382185},
+				//{ lat: 48.22339714904176, lng: 16.315473644963934}
+        { lat: 48.21679107276699, lng: 16.35650292576791},
+        { lat: 48.21883657766109, lng: 16.35649330368878},
+        { lat: 48.21949140789133, lng: 16.35619265833186},
+        { lat: 48.22081259731443, lng: 16.35520109403641},
+        { lat: 48.22159311183538, lng: 16.3540354545211},
+        { lat: 48.22211624348456, lng: 16.35323484808024},
+        { lat: 48.22299508178627, lng: 16.35174384927618},
+        { lat: 48.22333755277696, lng: 16.35081565262594},
+        { lat: 48.22352367518639, lng: 16.34978100736163},
+        { lat: 48.22377317738153, lng: 16.34771712734227},
+        { lat: 48.22352679616253, lng: 16.34564895561209},
+        { lat: 48.22314775177807, lng: 16.34440838812306},
+        { lat: 48.22256387963601, lng: 16.3436911675331},
+        { lat: 48.22154253739664, lng: 16.3431979902338},
+        { lat: 48.22077868196973, lng: 16.3427873211009},
+        { lat: 48.22019501819324, lng: 16.34202420021294},
+        { lat: 48.21947694889469, lng: 16.3408004749733},
+        { lat: 48.21891504736931, lng: 16.33952937110568},
+        { lat: 48.21839798833002, lng: 16.33782431156648},
+        { lat: 48.21801931521719, lng: 16.33481261867974},
+        { lat: 48.21792824946672, lng: 16.33250173670199},
+        { lat: 48.21803731852238, lng: 16.33031654191968},
+        { lat: 48.21870154484197, lng: 16.32785798772941},
+        { lat: 48.2199922391362, lng: 16.32495407057719},
+        { lat: 48.22149582257185, lng: 16.32135700152297},
+        { lat: 48.22181479108063, lng: 16.32051057566241},
+        { lat: 48.22343248885749, lng: 16.3155505910517},
+        { lat: 48.22517143412279, lng: 16.31089495529289}
+
+			],
+		},
+	  ];
+	  
+		pfade.forEach((linie) => {
+	  
+			const poly = new google.maps.Polyline({
+				path: linie.coords,
+				geodesic: true,
+				strokeColor: linie.color,
+				strokeOpacity: 1.0,
+				strokeWeight: 2,
+		});
+
+		poly.setMap(map);
+			poly.addListener("click", (e) => {
+				infoWindow.setContent(`<b>${linie.name}</b>`);
+				infoWindow.setPosition(e.latLng);
+				infoWindow.open(map);
+			});
+		});	  
+	
+		  
+      // Infowindow für jeden Marker hinzufügen
+      var infowindow = new google.maps.InfoWindow({
+        content: '<a href="' + location.link + '" target="_blank">' + location.title + '</a>'
+      });
+
+      // Ereignislistener, um das Infowindow zu öffnen, wenn der Marker angeklickt wird
+      marker.addListener('click', function() {
+        infowindow.open(map, marker);
+      });
+    });
+
+    // Funktion zum Anpassen des Zoom-Levels, um alle Marker im sichtbaren Bereich zu halten
+    var bounds = new google.maps.LatLngBounds();
+    locations.forEach(function(location) {
+      bounds.extend(new google.maps.LatLng(location.lat, location.lng));
+    });
+    map.fitBounds(bounds);
+
+    // Funktion zum Suchen nach Standorten
+    function searchLocations(keyword) {
+      return locations.filter(function(location) {
+        return location.title.toLowerCase().includes(keyword.toLowerCase());
+      });
+    }
+
+    // Funktion zum Anzeigen der Suchergebnisse im Dropdown-Menü
+    function showAutocompleteResults(results) {
+      var dropdown = document.getElementById('autocompleteDropdown');
+      dropdown.innerHTML = '';
+      results.slice(0, 5).forEach(function(result) {
+        var item = document.createElement('div');
+        item.classList.add('autocomplete-item');
+        item.textContent = result.title;
+        item.addEventListener('click', function() {
+          map.setCenter({lat: result.lat, lng: result.lng});
+          map.setZoom          (15); // Zoom auf den ausgewählten Ort erhöhen
+          document.getElementById('searchInput').value = ''; // Suchfeld leeren
+          document.getElementById('autocompleteDropdown').style.display = 'none'; // Dropdown-Menü ausblenden
+        });
+        dropdown.appendChild(item);
+      });
+      if (results.length > 0) {
+        dropdown.style.display = 'block'; // Dropdown-Menü anzeigen, wenn Ergebnisse vorhanden sind
+      } else {
+        dropdown.style.display = 'none'; // Sonst ausblenden
+      }
+    }
+
+    // Ereignislistener für die Eingabe im Suchfeld
+    document.getElementById('searchInput').addEventListener('input', function(event) {
+      var keyword = event.target.value.trim();
+      var results = searchLocations(keyword);
+      showAutocompleteResults(results);
+    });
+
+    // Ereignislistener für das Klicken außerhalb des Dropdown-Menüs, um es auszublenden
+    window.addEventListener('click', function(event) {
+      if (!document.getElementById('autocompleteDropdown').contains(event.target)) {
+        document.getElementById('autocompleteDropdown').style.display = 'none';
+      }
+    });
+  }
+</script>
+
+ <!-- Add your Google Maps API key -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBCBgbNYiZ7ZMvAEafgwM7OXnjIIDGKleI&callback=initMap" async defer></script>
+</body>
+</html>
